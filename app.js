@@ -1,4 +1,4 @@
-const {createTables, updateTables} = require("./dbOperations")
+const {updateTables} = require("./dbOperations")
 
 const express = require("express")
 const multer = require('multer')

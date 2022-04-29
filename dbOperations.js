@@ -89,6 +89,6 @@ const createDatabase = async () => {
 }
 
 
-createDatabase()
-//module.exports = {createTables, updateTables}
+//createDatabase()
+module.exports = {updateTables}
 
