@@ -1,4 +1,5 @@
 
+const { query } = require('express');
 const mysql = require('mysql');
 
 // run the following queries to make mysql compatible with node
@@ -10,6 +11,7 @@ const createConnection = async () => {
         host: "localhost",
         user: "root",
         password: "admin123",
+        database : 'testDB'
       });
 
       return new Promise((resolve, reject) => {
@@ -65,13 +67,12 @@ const updateTables = async (operationType, query) => {
 
 }
 
-const createDatabase = async () => {
-
+const executeQuery = async (query) => {
     return new Promise(async (resolve, reject) => {
 
         try {
             databaseConnection = await createConnection()
-            databaseConnection.query("CREATE DATABASE IF NOT EXISTS testDB", function (err, result) {
+            databaseConnection.query(query, function (err, result) {
              if(err) throw err
 
             console.log("Database testDB created");
@@ -84,11 +85,18 @@ const createDatabase = async () => {
         }
     })
     
-    
-
 }
 
 
-//createDatabase()
-module.exports = {updateTables}
+executeQuery("select * from Persons;")
+.then((result) => {
+    console.log("########## Got the data ############")
+    console.log(result)
+})
+.catch((e) => {
+    console.log("###### Error ##########")
+    console.log(e)
+})
+
+//module.exports = {updateTables}
 
