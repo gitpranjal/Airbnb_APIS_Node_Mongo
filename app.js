@@ -1,4 +1,4 @@
-const {updateTables} = require("./dbOperations")
+const {updateTables, executeQuery} = require("./dbOperations")
 
 const express = require("express")
 const multer = require('multer')
@@ -32,9 +32,54 @@ app.set('view engine', 'ejs')
 
 const upload = multer({ dest: './uploads/' })
 
+let loggedInUserObject = {}
+
 app.get("/", (request, response) => {
     response.render("tableCreation.html")
 })
+
+app.post("/login", async (request, response) => {
+
+    let inputObject = request.body
+    let username = inputObject.username
+    let password = inputObject.password
+    
+    let databaseUserMatchList = await executeQuery(`select * from users where Username="${username}" and Password="${password}"`)
+    console.log("############# databaseMatchList ###########", databaseUserMatchList)
+
+    if (databaseUserMatchList.length == 0)
+        response.json({loginStatus: false})
+    else
+    {
+        loggedInUserObject = databaseUserMatchList[0]
+        response.json({loginStatus: true})
+        res.send({loginStatus : true, reason : "Need help!", redirect_path: "/userInfoPage"})
+    }
+
+    
+})
+
+app.get("/userInfoPage", async (request, response) => {
+
+    
+    let databaseUserMatchList = await executeQuery(`select * from users where Username="${loggedInUserObject.Username}" and Password="${loggedInUserObject.Password}"`)
+    let currentUserInfo = databaseUserMatchList[0]
+
+    response.json(currentUserInfo)
+
+
+})
+
+
+
+app.get("/getUserList", async (request, response) => {
+
+    let userList = await executeQuery("select * from users");
+
+    response.send(userList)
+})
+
+
 
 app.post("/analyseSentiment", upload.single('uploadedTextFile'), async function (request, response){
      // The endpoint where the sentiment analysis calculation takes place and is subsequently displayed
