@@ -7,6 +7,8 @@ const bodyParser = require("body-parser")
 const fs = require('fs').promises
 const { request } = require("http")
 const { response } = require("express")
+const res = require("express/lib/response")
+const { exec } = require("child_process")
 
 
 const hostname = "0.0.0.0"
@@ -52,8 +54,8 @@ app.post("/login", async (request, response) => {
     else
     {
         loggedInUserObject = databaseUserMatchList[0]
-        response.json({loginStatus: true})
-        res.send({loginStatus : true, reason : "Need help!", redirect_path: "/userInfoPage"})
+        //response.json({loginStatus: true})
+        response.redirect("/userInfoPage")
     }
 
     
@@ -70,45 +72,172 @@ app.get("/userInfoPage", async (request, response) => {
 
 })
 
+app.post("/addUser", async (request, response) => {
+
+    let inputObject = request.body
+    if (inputObject == null)
+    {
+        response.send({"updationStatus": "Failed", "message": "No updation object specified"})
+        return
+    }
+
+    if(inputObject.SSN == null)
+    {
+        response.send({"updationStatus": "Failed", "message": "SSN not supplied"})
+        return
+    }
+
+    let userListWithProvidedSSN = await executeQuery(`select * from Users where SSN=${inputObject.SSN}`)
+
+    
+
+    if(userListWithProvidedSSN.length != 0)
+    {
+        console.log("SSN already present")
+        response.send({"updationStatus": "Failed", "message": "SSN already present"})
+        return
+    }
+
+
+    
+
+    try{
+
+       executeQuery(`insert into Users (SSN, Password, Address, Phoneno, Fname, Mname, Lname, Username)
+                        values (${inputObject.SSN},
+                             "${inputObject.Password}", 
+                             "${inputObject.Address}", 
+                             ${inputObject.Phoneno},
+                             "${inputObject.Fname}",
+                             "${inputObject.Mname}",
+                             "${inputObject.Lname}",
+                             "${inputObject.Username}")`  
+                        )
+
+ 
+response.send({"updationStatus": "Success"})
+
+    }
+   catch(e){
+
+       console.log("########## Couldn't update ##########")
+       console.log(e)
+       response.send({"updationStatus": "Failed", "message": "An error occured"})
+   }
+   
+})
+
+app.post("/deleteUser", async(request, response) => {
+
+    let inputObject = request.body
+
+    if(inputObject.SSN == null)
+    {
+        response.send({"updationStatus": "Failed", "message": "SSN not supplied"})
+        return
+    }
+
+    try{
+
+        executeQuery(`delete from Users where SSN = ${inputObject.SSN};
+    `)
+
+    
+
+response.send({"updationStatus": "Success"})
+
+    }
+   catch(e){
+
+       console.log("########## Couldn't delete ##########")
+       console.log(e)
+       response.send({"updationStatus": "Failed", "message": "An error occured"})
+   }
+    
+})
+
+app.post("/updateUserInfo", async (request, response) => {
+
+    let inputObject = request.body
+
+    if(inputObject.SSN == null)
+    {
+        response.send({"updationStatus": "Failed", "message": "SSN not supplied"})
+        return
+    }
+
+    if (inputObject.updatedInfoObject == null)
+    {
+        response.send({"updationStatus": "Failed", "message": "No updation object specified"})
+        return
+    }
+    
+    let userObjectBeforeUpdation = await executeQuery(`select * from Users where SSN=${inputObject.SSN}`)
+
+    
+    userObjectBeforeUpdation = userObjectBeforeUpdation[0]
+    console.log("########## User info before updation #########")
+    console.log(userObjectBeforeUpdation)
+
+
+    let updatedInfoObject = inputObject.updatedInfoObject
+    // let adminSSNList = await executeQuery("select A_Ssn from Admins")
+    // adminSSNList = adminSSNList.map((adminObj) => {return adminObj.A_Ssn})
+    // let isCurrentUserAdmin = false
+
+    // for(let ssn of adminSSNList)
+    // {
+    //     if(loggedInUserObject.SSN == ssn)
+    //         isCurrentUserAdmin = true
+
+    // }
+
+
+
+    try{
+
+        executeQuery(`update Users set SSN=${updatedInfoObject.SSN != null ? updatedInfoObject.SSN : userObjectBeforeUpdation.SSN},
+        Password="${updatedInfoObject.Password != null ? updatedInfoObject.Password : userObjectBeforeUpdation.Password}",
+        Address="${updatedInfoObject.Address != null ? updatedInfoObject.Address : userObjectBeforeUpdation.Address}",
+        Phoneno=${updatedInfoObject.Phoneno != null ? updatedInfoObject.Phoneno : userObjectBeforeUpdation.Phoneno},
+        Fname="${updatedInfoObject.Fname != null ? updatedInfoObject.Fname :userObjectBeforeUpdation.Fname}",
+        Mname="${updatedInfoObject.Mname != null ? updatedInfoObject.Mname : userObjectBeforeUpdation.Mname}",
+        Lname="${updatedInfoObject.Lname != null ? updatedInfoObject.Lname : userObjectBeforeUpdation.Lname}",
+        Username="${updatedInfoObject.Username != null ? updatedInfoObject.Username : userObjectBeforeUpdation.Username}"
+        where SSN = ${inputObject.SSN};
+    `)
+
+    if(loggedInUserObject.SSN == null || loggedInUserObject.SSN == inputObject.SSN)
+        loggedInUserObject = inputObject.updatedInfoObject
+
+response.send({"updationStatus": "Success"})
+
+    }
+   catch(e){
+
+       console.log("########## Couldn't update ##########")
+       console.log(e)
+       response.send({"updationStatus": "Failed", "message": "An error occured"})
+   }
+   
+    
+
+})
+
 
 
 app.get("/getUserList", async (request, response) => {
 
     let userList = await executeQuery("select * from users");
-
+    // let userNames = userList.map((userObj) => {return userObj.Fname});
+    // console.log("###### user Names ########")
+    // console.log(userNames)
     response.send(userList)
 })
 
 
 
-app.post("/analyseSentiment", upload.single('uploadedTextFile'), async function (request, response){
-     // The endpoint where the sentiment analysis calculation takes place and is subsequently displayed
-      try{
 
-        let text = await readTextFromFile(request.file.path)
-        let sentimentInfoObject = await analSentiment(text)
-        let sentimentObjectSentenceBySentence = await analSentimentSentenceBySentence(text)
-        let finalOutput = "######## ORIGNAL TEXT ######## </br>"+ text + "</br></br> ###### SENTIMENT ANALYSIS ###### </br></br>"
-        finalOutput += "</br>Overall comparitive sentiment score (-5 being most negative, +5 being mst positive, 0 being neutral)</br>"
-        finalOutput += ""+sentimentInfoObject["comparative"]+"</br>"
-        finalOutput += "</br>Sentiment score of each word/token (-5 being most negative +5 being postive)</br>"
-
-        for(let tokenObject of sentimentInfoObject["calculation"])
-        finalOutput += JSON.stringify(tokenObject)+"</br>"
-
-        finalOutput += "</br>Sentiment score of each sentence </br>"
-        for(let sentencesSentimentObjectsList of sentimentObjectSentenceBySentence)
-            finalOutput += JSON.stringify(sentencesSentimentObjectsList)+"</br>"
-        
-
-        //JSON.stringify(sentimentInfoObject)
-        response.send(finalOutput)
-      }
-      catch(e){
-          response.send(e)
-      }
-    }
-)
 
 
 

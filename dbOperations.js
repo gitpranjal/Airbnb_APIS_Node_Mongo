@@ -61,7 +61,7 @@ const executeQuery = async (query) => {
             databaseConnection.query(query, function (err, result) {
              if(err) throw err
 
-            console.log("Database testDB created");
+            console.log("######## Arrived at userInfoPage with curent user as follos #######")
             console.log(result)
             resolve(result)
               });
