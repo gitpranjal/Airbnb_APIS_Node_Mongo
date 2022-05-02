@@ -59,15 +59,21 @@ const executeQuery = async (query) => {
         try {
             databaseConnection = await createConnection()
             databaseConnection.query(query, function (err, result) {
-             if(err) throw err
+             if(err) {
+                reject(err)
+                return
+             }
 
-            console.log("######## Arrived at userInfoPage with curent user as follos #######")
+            console.log("######## Successfully Executed query #######")
+            console.log(query)
             console.log(result)
             resolve(result)
               });
         }
         catch(e){
-            reject(e)
+            //reject(e)
+            console.log("############# Error in executing query ############")
+            console.log(e)
         }
     })
     

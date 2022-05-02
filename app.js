@@ -9,6 +9,7 @@ const { request } = require("http")
 const { response } = require("express")
 const res = require("express/lib/response")
 const { exec } = require("child_process")
+const cors = require('cors')
 
 
 const hostname = "0.0.0.0"
@@ -36,6 +37,10 @@ const upload = multer({ dest: './uploads/' })
 
 let loggedInUserObject = {}
 
+app.use(cors({
+    origin: '*'
+}));
+
 app.get("/", (request, response) => {
     response.render("tableCreation.html")
 })
@@ -46,6 +51,9 @@ app.post("/login", async (request, response) => {
     let username = inputObject.username
     let password = inputObject.password
     
+    console.log("#######Request Object ###########")
+    console.log(inputObject)
+
     let databaseUserMatchList = await executeQuery(`select * from users where Username="${username}" and Password="${password}"`)
     console.log("############# databaseMatchList ###########", databaseUserMatchList)
 
@@ -68,6 +76,26 @@ app.get("/userInfoPage", async (request, response) => {
     let currentUserInfo = databaseUserMatchList[0]
 
     response.json(currentUserInfo)
+
+
+})
+
+app.get("/flightDetails", async (request, response) => {
+
+    
+    let flightList = await executeQuery(`select * from Flight`)
+   
+    response.json(flightList)
+
+
+})
+
+app.get("/announcements", async (request, response) => {
+
+    
+    let announcementList = await executeQuery(`select * from Announcement`)
+   
+    response.json(announcementList)
 
 
 })
@@ -103,7 +131,7 @@ app.post("/addUser", async (request, response) => {
 
     try{
 
-       executeQuery(`insert into Users (SSN, Password, Address, Phoneno, Fname, Mname, Lname, Username)
+       await  executeQuery(`insert into Users (SSN, Password, Address, Phoneno, Fname, Mname, Lname, Username, UserType)
                         values (${inputObject.SSN},
                              "${inputObject.Password}", 
                              "${inputObject.Address}", 
@@ -111,11 +139,13 @@ app.post("/addUser", async (request, response) => {
                              "${inputObject.Fname}",
                              "${inputObject.Mname}",
                              "${inputObject.Lname}",
-                             "${inputObject.Username}")`  
+                             "${inputObject.Username}",
+                             "${inputObject.UserType}")`  
                         )
 
  
 response.send({"updationStatus": "Success"})
+return
 
     }
    catch(e){
@@ -139,12 +169,9 @@ app.post("/deleteUser", async(request, response) => {
 
     try{
 
-        executeQuery(`delete from Users where SSN = ${inputObject.SSN};
-    `)
+        await executeQuery(`delete from Users where SSN = ${inputObject.SSN};`)
 
-    
-
-response.send({"updationStatus": "Success"})
+        response.send({"updationStatus": "Success"})
 
     }
    catch(e){
@@ -203,7 +230,8 @@ app.post("/updateUserInfo", async (request, response) => {
         Fname="${updatedInfoObject.Fname != null ? updatedInfoObject.Fname :userObjectBeforeUpdation.Fname}",
         Mname="${updatedInfoObject.Mname != null ? updatedInfoObject.Mname : userObjectBeforeUpdation.Mname}",
         Lname="${updatedInfoObject.Lname != null ? updatedInfoObject.Lname : userObjectBeforeUpdation.Lname}",
-        Username="${updatedInfoObject.Username != null ? updatedInfoObject.Username : userObjectBeforeUpdation.Username}"
+        Username="${updatedInfoObject.Username != null ? updatedInfoObject.Username : userObjectBeforeUpdation.Username}",
+        UserType="${updatedInfoObject.UserType != null ? updatedInfoObject.UserType : userObjectBeforeUpdation.UserType}"
         where SSN = ${inputObject.SSN};
     `)
 
