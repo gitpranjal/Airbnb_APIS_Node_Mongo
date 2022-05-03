@@ -33,4 +33,8 @@ List of APIS and corresponding SQLqueries used
 
 
 9. "/getUserList"      :     select * from users
-10. 
+
+# Steps to run
+
+1. npm install
+2. npm start
