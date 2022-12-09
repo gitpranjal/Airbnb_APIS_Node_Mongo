@@ -1,94 +1,247 @@
 
+
+
+
+var { MongoClient } = require('mongodb');
 const { query } = require('express');
-const mysql = require('mysql');
+// or as an es module:
+// import { MongoClient } from 'mongodb'
+
+// Connection URL
+// var url = 'mongodb://localhost:27017';
+var url = 'mongodb+srv://wplproj:lCfJZgawc8WGXVHu@cluster0.sbaukov.mongodb.net/test';
+var client = new MongoClient(url);
+var dbName = 'apnabnb'
+
 
 // run the following queries to make mysql compatible with node
 //ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY 'admin'
 //flush privileges
 
-const createConnection = async () => {
-    let con = mysql.createConnection({
-        host: "localhost",
-        user: "root",
-        password: "admin123",
-        database : 'airportDB'
-      });
 
-      return new Promise((resolve, reject) => {
-    
-            try{
 
-                con.connect(function(err) {
-                    if (err) throw err;
-                    console.log("Connected!");
-    
-                  });
-    
-                resolve(con)
 
-            }
-            catch(e){
-                reject(e)
-            }
-            
-  
-      })
+const updateDoc = async(collectionName, IdentifierKey, IdentifierValue, attributesToChange) =>{
+
+    try{
+
+        
+        
+        await client.connect();
+        console.log('Connected successfully to server');
+        const db = client.db(dbName);
+        const collection = db.collection(collectionName);
+
+       
       
-}
+      
+        let identifier = {}
+        identifier[IdentifierKey] = IdentifierValue
 
-
-
-
-const updateTables = async (operationType, query) => {
-    // Function to split a text into sentences and return an object containing comparitive sentiment score mapped against the sentence
-    return new Promise((resolve, reject) => {
-        try{
-            console.log(query, " Query will be executed")
-            resolve(1)
-        }
-        catch(e){
-            reject(e)
-        }
-    })
-
-}
-
-const executeQuery = async (query) => {
-    return new Promise(async (resolve, reject) => {
-
-        try {
-            databaseConnection = await createConnection()
-            databaseConnection.query(query, function (err, result) {
-             if(err) {
-                reject(err)
-                return
-             }
-
-            console.log("######## Successfully Executed query #######")
-            console.log(query)
-            console.log(result)
-            resolve(result)
-              });
-        }
-        catch(e){
-            //reject(e)
-            console.log("############# Error in executing query ############")
-            console.log(e)
-        }
-    })
     
+        
+        await collection.updateOne(identifier,
+        {$set:{...attributesToChange}},{multi:true})
+  
+
+    }
+    catch(e){
+
+        console.log("Error in getting list")
+        console.log(e)
+    }
+
+}
+
+const upsertDoc = async (collectionName, newDoc, key, value) => {
+
+    try{
+
+        
+        
+        await client.connect();
+        console.log('Connected successfully to server');
+        const db = client.db(dbName);
+        const collection = db.collection(collectionName);
+
+        let filter = {}
+        filter[key] = value
+
+        await collection.updateOne(filter, 
+            {$set: newDoc}, 
+            { upsert : true } )
+        // await collection.insertOne(newDoc)
+        client.close()
+  
+ 
+
+    }
+    catch(e){
+
+        console.log("Error in getting list")
+        console.log(e)
+    }
+
 }
 
 
-// executeQuery("select * from Persons;")
-// .then((result) => {
-//     console.log("########## Got the data ############")
-//     console.log(result)
-// })
-// .catch((e) => {
-//     console.log("###### Error ##########")
-//     console.log(e)
-// })
+const insertDoc = async (collectionName, newDoc) => {
 
-module.exports = {updateTables, executeQuery}
+    try{
+
+        
+        
+        await client.connect();
+        console.log('Connected successfully to server');
+        const db = client.db(dbName);
+        const collection = db.collection(collectionName);
+
+       
+        await collection.insertOne(newDoc)
+        // await collection.insertOne(newDoc)
+        client.close()
+  
+ 
+
+    }
+    catch(e){
+
+        console.log("Error in inserting doc")
+        console.log(e)
+    }
+
+}
+
+
+const deleteDoc = async (collectionName, key, value) => {
+
+
+    try{
+
+        
+        
+        await client.connect();
+        console.log('Connected successfully to server');
+        const db = client.db(dbName);
+        const collection = db.collection(collectionName);
+
+        let query = {}
+        query[key] = value
+
+        await collection.deleteMany(query)
+        client.close()
+  
+ 
+
+    }
+    catch(e){
+
+        console.log("Error in getting list")
+        console.log(e)
+    }
+
+
+}
+
+const getFilteredList = async (collectionName, key, value) => {
+
+    try{
+
+        
+        value = parseInt(value)
+        await client.connect();
+        console.log('Connected successfully to server');
+        const db = client.db(dbName);
+        const collection = db.collection(collectionName);
+
+        let query = {}
+        query[key] = value
+        const findResult = await collection.find(query).toArray()
+        client.close()
+  
+    // the following code examples can be pasted here...
+        console.log("#######")
+        console.log(typeof key)
+        console.log(typeof value)
+        console.log(query)
+        console.log(findResult)
+        return findResult;
+
+    }
+    catch(e){
+
+        console.log("Error in getting list")
+        console.log(e)
+    }
+
+}
+
+const getDoc = async (collectionName, key, value) =>{
+
+    try{
+
+        
+        value = parseInt(value)
+        await client.connect();
+        console.log('Connected successfully to server');
+        const db = client.db(dbName);
+        const collection = db.collection(collectionName);
+
+        let query = {}
+        query[key] = value
+        const findResult = await collection.findOne(query)
+        client.close()
+  
+    // the following code examples can be pasted here...
+        console.log("#######")
+        console.log(typeof key)
+        console.log(typeof value)
+        console.log(query)
+        console.log(findResult)
+        return findResult;
+
+    }
+    catch(e){
+
+        console.log("Error in getting list")
+        console.log(e)
+    }
+
+}
+
+const getList = async (colletionName) => {
+
+    try{
+
+        await client.connect();
+        console.log('Connected successfully to server');
+        const db = client.db(dbName);
+        const collection = db.collection(colletionName);
+        const findResult = await collection.find({}).toArray();
+        client.close()
+  
+    // the following code examples can be pasted here...
+        console.log("#######")
+        console.log(findResult)
+        return findResult;
+
+    }
+    catch(e){
+
+        console.log("Error in getting list")
+        console.log(e)
+    }
+    
+  
+  }
+
+
+
+
+
+
+
+
+
+module.exports = {getList, getDoc, upsertDoc, updateDoc, deleteDoc, getFilteredList, insertDoc}
 

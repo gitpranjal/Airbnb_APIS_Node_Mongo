@@ -1,30 +1,21 @@
-const {updateTables, executeQuery} = require("./dbOperations")
+const {getList, getDoc, upsertDoc, updateDoc, deleteDoc, getFilteredList, insertDoc} = require("./dbOperations")
 
 const express = require("express")
 const multer = require('multer')
 const path = require('path')
 const bodyParser = require("body-parser")
-const fs = require('fs').promises
+const moment = require("moment")
+
+
+const cors = require('cors')
 const { request } = require("http")
 const { response } = require("express")
-const res = require("express/lib/response")
-const { exec } = require("child_process")
-const cors = require('cors')
 
 
 const hostname = "0.0.0.0"
 const port =  process.env.PORT || 3000
 
-const storage = multer.diskStorage({
-    destination: function(req, file, cb) {
-        cb(null, 'uploads');
-    },
 
-    // By default, multer removes file extensions so let's add them back
-    filename: function(req, file, cb) {
-        cb(null, file.fieldname + '-' + Date.now() + path.extname(file.originalname));
-    }
-});
 
 const app = express()
 app.use(bodyParser.json())
@@ -41,227 +32,310 @@ app.use(cors({
     origin: '*'
 }));
 
-app.get("/", (request, response) => {
-    response.render("tableCreation.html")
+// app.get("/", (request, response) => {
+//     response.render("tableCreation.html")
+// })
+
+app.get("/", async (request, response) => {
+    
+    let list = await getList('properties');
+    response.json(list)
 })
 
-app.post("/login", async (request, response) => {
-
-    let inputObject = request.body
-    let username = inputObject.username
-    let password = inputObject.password
+app.get("/getProperties", async (request, response) => {
     
-    console.log("#######Request Object ###########")
-    console.log(inputObject)
+    let list = await getList('properties');
+    response.json(list)
+})
 
-    let databaseUserMatchList = await executeQuery(`select * from users where Username="${username}" and Password="${password}"`)
-    console.log("############# databaseMatchList ###########", databaseUserMatchList)
 
-    if (databaseUserMatchList.length == 0)
-        response.json({loginStatus: false})
-    else
+
+
+app.post("/getUserWishList", async (request, response) => {
+
+    let userID = request.body.userID
+
+    if(typeof userID == "undefined" || userID ==  null) 
     {
-        loggedInUserObject = databaseUserMatchList[0]
-        //response.json({loginStatus: true})
-        response.redirect("/userInfoPage")
-    }
-
-    
-})
-
-app.get("/userInfoPage", async (request, response) => {
-
-    
-    let databaseUserMatchList = await executeQuery(`select * from users where Username="${loggedInUserObject.Username}" and Password="${loggedInUserObject.Password}"`)
-    let currentUserInfo = databaseUserMatchList[0]
-
-    response.json(currentUserInfo)
-
-
-})
-
-app.get("/flightDetails", async (request, response) => {
-
-    
-    let flightList = await executeQuery(`select * from Flight`)
-   
-    response.json(flightList)
-
-
-})
-
-app.get("/announcements", async (request, response) => {
-
-    
-    let announcementList = await executeQuery(`select * from Announcement`)
-   
-    response.json(announcementList)
-
-
-})
-
-app.post("/addUser", async (request, response) => {
-
-    let inputObject = request.body
-    if (inputObject == null)
-    {
-        response.send({"updationStatus": "Failed", "message": "No updation object specified"})
+        response.send("Invalid request. UserID Id not found")
         return
     }
 
-    if(inputObject.SSN == null)
-    {
-        response.send({"updationStatus": "Failed", "message": "SSN not supplied"})
-        return
-    }
-
-    let userListWithProvidedSSN = await executeQuery(`select * from Users where SSN=${inputObject.SSN}`)
-
-    
-
-    if(userListWithProvidedSSN.length != 0)
-    {
-        console.log("SSN already present")
-        response.send({"updationStatus": "Failed", "message": "SSN already present"})
-        return
-    }
+    let userWishList = await getFilteredList('wishlist', 'userID', userID)
+    response.json(userWishList)
 
 
-    
-
-    try{
-
-       await  executeQuery(`insert into Users (SSN, Password, Address, Phoneno, Fname, Mname, Lname, Username, UserType)
-                        values (${inputObject.SSN},
-                             "${inputObject.Password}", 
-                             "${inputObject.Address}", 
-                             ${inputObject.Phoneno},
-                             "${inputObject.Fname}",
-                             "${inputObject.Mname}",
-                             "${inputObject.Lname}",
-                             "${inputObject.Username}",
-                             "${inputObject.UserType}")`  
-                        )
-
- 
-response.send({"updationStatus": "Success"})
-return
-
-    }
-   catch(e){
-
-       console.log("########## Couldn't update ##########")
-       console.log(e)
-       response.send({"updationStatus": "Failed", "message": "An error occured"})
-   }
-   
 })
 
-app.post("/deleteUser", async(request, response) => {
 
-    let inputObject = request.body
+app.get("/getWishlistDetails", async (request, response) => {
 
-    if(inputObject.SSN == null)
+    
+    let wishlistID = request.query.wishlistID
+
+    if(typeof wishlistID == "undefined" || wishlistID ==  null) 
     {
-        response.send({"updationStatus": "Failed", "message": "SSN not supplied"})
+        response.send("Invalid request. wishlistID Id not found")
         return
     }
 
-    try{
+    let wishlistDetails = await getFilteredList('wishlistitems', 'wishlistID', wishlistID)
+    response.json(wishlistDetails)
 
-        await executeQuery(`delete from Users where SSN = ${inputObject.SSN};`)
 
-        response.send({"updationStatus": "Success"})
-
-    }
-   catch(e){
-
-       console.log("########## Couldn't delete ##########")
-       console.log(e)
-       response.send({"updationStatus": "Failed", "message": "An error occured"})
-   }
-    
 })
 
-app.post("/updateUserInfo", async (request, response) => {
+app.post("/addPropertyToWishlist", async (request, response) => {
 
-    let inputObject = request.body
+    let {propertyID, wishlistID} = request.body
 
-    if(inputObject.SSN == null)
+
+    if(typeof propertyID == "undefined" || propertyID ==  null) 
     {
-        response.send({"updationStatus": "Failed", "message": "SSN not supplied"})
+        response.send("Invalid request. propertyID Id not found")
         return
     }
 
-    if (inputObject.updatedInfoObject == null)
+    if(typeof wishlistID == "undefined" || wishlistID ==  null) 
     {
-        response.send({"updationStatus": "Failed", "message": "No updation object specified"})
+        response.send("Invalid request. wishlistID Id not found")
         return
     }
-    
-    let userObjectBeforeUpdation = await executeQuery(`select * from Users where SSN=${inputObject.SSN}`)
 
-    
-    userObjectBeforeUpdation = userObjectBeforeUpdation[0]
-    console.log("########## User info before updation #########")
-    console.log(userObjectBeforeUpdation)
+    let wishlistDetails = await getFilteredList('wishlistitems', 'wishlistID', wishlistID)
 
-
-    let updatedInfoObject = inputObject.updatedInfoObject
-    // let adminSSNList = await executeQuery("select A_Ssn from Admins")
-    // adminSSNList = adminSSNList.map((adminObj) => {return adminObj.A_Ssn})
-    // let isCurrentUserAdmin = false
-
-    // for(let ssn of adminSSNList)
-    // {
-    //     if(loggedInUserObject.SSN == ssn)
-    //         isCurrentUserAdmin = true
-
-    // }
-
+    for(let wishListObj of wishlistDetails)
+    {
+        if(wishListObj.propertyID == propertyID)
+        {
+            response.status(400).send({"message": "property already exists"})
+            return
+        }
+    }
 
 
     try{
-
-        executeQuery(`update Users set SSN=${updatedInfoObject.SSN != null ? updatedInfoObject.SSN : userObjectBeforeUpdation.SSN},
-        Password="${updatedInfoObject.Password != null ? updatedInfoObject.Password : userObjectBeforeUpdation.Password}",
-        Address="${updatedInfoObject.Address != null ? updatedInfoObject.Address : userObjectBeforeUpdation.Address}",
-        Phoneno=${updatedInfoObject.Phoneno != null ? updatedInfoObject.Phoneno : userObjectBeforeUpdation.Phoneno},
-        Fname="${updatedInfoObject.Fname != null ? updatedInfoObject.Fname :userObjectBeforeUpdation.Fname}",
-        Mname="${updatedInfoObject.Mname != null ? updatedInfoObject.Mname : userObjectBeforeUpdation.Mname}",
-        Lname="${updatedInfoObject.Lname != null ? updatedInfoObject.Lname : userObjectBeforeUpdation.Lname}",
-        Username="${updatedInfoObject.Username != null ? updatedInfoObject.Username : userObjectBeforeUpdation.Username}",
-        UserType="${updatedInfoObject.UserType != null ? updatedInfoObject.UserType : userObjectBeforeUpdation.UserType}"
-        where SSN = ${inputObject.SSN};
-    `)
-
-    if(loggedInUserObject.SSN == null || loggedInUserObject.SSN == inputObject.SSN)
-        loggedInUserObject = inputObject.updatedInfoObject
-
-response.send({"updationStatus": "Success"})
-
+    
+        await insertDoc('wishlistitems', request.body)
+        response.send("Reservation added successfully")
     }
-   catch(e){
+    catch(e){
 
-       console.log("########## Couldn't update ##########")
-       console.log(e)
-       response.send({"updationStatus": "Failed", "message": "An error occured"})
-   }
-   
+      console.log(e)
+      response.send("Could't insert new reservation")
+    }
+
+})
+
+
+app.post("/addWishList", async (request, response) => {
+    
+    // let list = await getList('properties');
+    let inputObject = request.body
     
 
+    if(typeof wishlistID == "undefined" || wishlistID ==  null) 
+    {
+        response.send("Invalid request. wishlistID Id not found")
+        return
+    }
+
+    if(typeof userID == "undefined" || userID ==  null) 
+    {
+        response.send("Invalid request. UserID Id not found")
+        return
+    }
+
+    if(typeof wishListName == "undefined" || wishListName ==  null) 
+    {
+        response.send("Invalid request. wishListName Id not found")
+        return
+    }
+
+    inputObject["createDate"] = moment().moment().format('MMMM Do YYYY, h:mm:ss a')
+
+    try{
+        let key = 'wishlistID'
+        let value = parseInt(inputObject.wishlistID)
+        await upsertDoc('wishlist', inputObject, key, value)
+        // await upsertDoc('properties', inputObject)
+        response.send("Wishlist added successfully")
+    }
+    catch(e){
+
+      console.log(e)
+      response.send("Could't insert new wishlist")
+    }
+    
 })
 
 
 
-app.get("/getUserList", async (request, response) => {
+app.post("/updateProperty", async (request, response) => {
+    
+    // let list = await getList('properties');
+    let inputObject = request.body
 
-    let userList = await executeQuery("select * from users");
-    // let userNames = userList.map((userObj) => {return userObj.Fname});
-    // console.log("###### user Names ########")
-    // console.log(userNames)
-    response.send(userList)
+    if(typeof inputObject.propertyID == "undefined" || inputObject.propertyID ==  null) 
+    {
+        response.send("PropertyID not found")
+        return
+    }
+
+    let IdentifierKey = 'propertyID'
+    let IdentifierValue = inputObject['propertyID']
+    let attributesToChange = {...inputObject}
+    delete attributesToChange['propertyID']
+
+    await updateDoc('properties', IdentifierKey, IdentifierValue, attributesToChange)
+    response.send("Property updated sucessfully")
+    
 })
+
+app.post("/updateReservation", async (request, response) => {
+    
+    // let list = await getList('properties');
+    let inputObject = request.body
+
+    if(typeof inputObject.reservationId == "undefined" || inputObject.reservationId ==  null) 
+    {
+        response.send("Reservation ID not found")
+        return
+    }
+
+    let IdentifierKey = 'reservationId'
+    let IdentifierValue = inputObject['reservationId']
+    let attributesToChange = {...inputObject}
+    delete attributesToChange['reservationId']
+
+    await updateDoc('reservation', IdentifierKey, IdentifierValue, attributesToChange)
+    response.send("Reservation updated sucessfully")
+    
+})
+
+
+app.get("/getPropertyDetails", async (request, response) => {
+    
+    // let list = await getList('properties');
+    let property = await getDoc('properties', 'propertyID', request.query.propertyID)
+    response.json(property)
+    
+    
+})
+
+app.get("/getReservationDetails", async (request, response) => {
+    
+    // let list = await getList('properties');
+    let property = await getDoc('reservation', 'reservationId', request.query.reservationId)
+    response.json(property)
+    
+    
+})
+
+app.post("/addReservation", async (request, response) => {
+
+    let inputObject = request.body
+
+    if(typeof inputObject.reservationId == "undefined" || inputObject.reservationId ==  null) 
+    {
+        response.send("Invalid entry. Reservation Id not found")
+        return
+    }
+
+    if(typeof inputObject.propertyID == "undefined" || inputObject.propertyID ==  null) 
+    {
+        response.send("Invalid entry. property Id not found")
+        return
+    }
+    if(typeof inputObject.hostID == "undefined" || inputObject.hostID ==  null) 
+    {
+        response.send("Invalid entry. host Id not found")
+        return
+    }
+    
+    if(typeof inputObject.userID == "undefined" || inputObject.userID ==  null) 
+    {
+        response.send("Invalid entry. userID Id not found")
+        return
+    }
+    try{
+        let key = 'reservationId'
+        let value = parseInt(inputObject.reservationId)
+        await upsertDoc('reservation', inputObject, key, value)
+        response.send("Reservation added successfully")
+    }
+    catch(e){
+
+      console.log(e)
+      response.send("Could't insert new document")
+    }
+        
+})
+
+app.post("/addProperty", async (request, response) => {
+
+    let inputObject = request.body
+
+    if(typeof inputObject.hostID == "undefined" || inputObject.hostID ==  null) 
+    {
+        response.send("Invalid entry. host Id not found")
+        return
+    }
+
+    if(typeof inputObject.propertyID == "undefined" || inputObject.propertyID ==  null) 
+    {
+        response.send("Invalid entry. propertyId Id not found")
+        return
+    }
+    
+
+    try{
+        let key = 'propertyID'
+        let value = parseInt(inputObject.propertyID)
+        await upsertDoc('properties', inputObject, key, value)
+        // await upsertDoc('properties', inputObject)
+        response.send("Property added added successfully")
+    }
+    catch(e){
+
+      console.log(e)
+      response.send("Could't insert new document")
+    }
+        
+})
+
+
+app.get("/deleteProperty", async (request, response) => {
+    
+    // let list = await getList('properties');
+    if(typeof request.query.propertyID == "undefined" || request.query.propertyID ==  null) 
+    {
+        response.send("Invalid request. Property Id not found")
+        return
+    }
+    let propertyID = parseInt(request.query.propertyID)
+    await deleteDoc('properties', 'propertyID', propertyID)
+    response.send("Property deleted sucessfully")
+    
+    
+})
+
+app.get("/deleteReservation", async (request, response) => {
+    
+    // let list = await getList('properties');
+    if(typeof request.query.reservationId == "undefined" || request.query.reservationId ==  null) 
+    {
+        response.send("Invalid request. Reseravtion Id not found")
+        return
+    }
+    let reservationId = parseInt(request.query.reservationId)
+    await deleteDoc('reservation', 'reservationId', reservationId)
+    response.send("Reservation deleted sucessfully")
+    
+    
+})
+
+
 
 
 
