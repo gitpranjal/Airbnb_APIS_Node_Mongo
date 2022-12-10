@@ -141,7 +141,7 @@ const insertDoc = async (collectionName, newDoc) => {
 }
 
 
-const deleteDoc = async (collectionName, key, value) => {
+const deleteDoc = async (collectionName, query) => {
 
 
     try{
@@ -152,9 +152,6 @@ const deleteDoc = async (collectionName, key, value) => {
         console.log('Connected successfully to server');
         const db = client.db(dbName);
         const collection = db.collection(collectionName);
-
-        let query = {}
-        query[key] = value
 
         await collection.deleteMany(query)
         client.close()

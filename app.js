@@ -218,7 +218,7 @@ app.post("/updateReservation", async (request, response) => {
     let attributesToChange = {...inputObject}
     delete attributesToChange['reservationId']
 
-    await updateDoc('reservation', IdentifierKey, IdentifierValue, attributesToChange)
+    await updateDoc('reservations', IdentifierKey, IdentifierValue, attributesToChange)
     response.send("Reservation updated sucessfully")
     
 })
@@ -236,7 +236,7 @@ app.get("/getPropertyDetails", async (request, response) => {
 app.get("/getReservationDetails", async (request, response) => {
     
     // let list = await getList('properties');
-    let property = await getDoc('reservation', 'reservationId', request.query.reservationId)
+    let property = await getDoc('reservations', 'reservationId', request.query.reservationId)
     response.json(property)
     
     
@@ -245,7 +245,12 @@ app.get("/getReservationDetails", async (request, response) => {
 app.post("/addReservation", async (request, response) => {
 
     let inputObject = request.body
-
+    let userID = request.session.userID
+    inputObject.userID = userID
+    if(typeof userID == "undefined" || userID ==  null) {
+        response.send("Not logged in")
+        return
+    }
     if(typeof inputObject.reservationId == "undefined" || inputObject.reservationId ==  null) 
     {
         response.send("Invalid entry. Reservation Id not found")
@@ -263,15 +268,10 @@ app.post("/addReservation", async (request, response) => {
         return
     }
     
-    if(typeof inputObject.userID == "undefined" || inputObject.userID ==  null) 
-    {
-        response.send("Invalid entry. userID Id not found")
-        return
-    }
     try{
         let key = 'reservationId'
         let value = parseInt(inputObject.reservationId)
-        await upsertDoc('reservation', inputObject, key, value)
+        await upsertDoc('reservations', inputObject, key, value)
         response.send("Reservation added successfully")
     }
     catch(e){
@@ -318,13 +318,19 @@ app.post("/addProperty", async (request, response) => {
 app.get("/deleteProperty", async (request, response) => {
     
     // let list = await getList('properties');
+    let userID = request.session.userID
+    let host = request.session.host
+    if(typeof userID == "undefined" || userID ==  null || host ==  "undefined" || host ==  null) {
+        response.send("Not logged in or not host")
+        return
+    }
     if(typeof request.query.propertyID == "undefined" || request.query.propertyID ==  null) 
     {
         response.send("Invalid request. Property Id not found")
         return
     }
     let propertyID = parseInt(request.query.propertyID)
-    await deleteDoc('properties', 'propertyID', propertyID)
+    await deleteDoc('properties', {'propertyID':propertyID})
     response.send("Property deleted sucessfully")
     
     
@@ -333,13 +339,18 @@ app.get("/deleteProperty", async (request, response) => {
 app.get("/deleteReservation", async (request, response) => {
     
     // let list = await getList('properties');
+    let userID = request.session.userID
+    if(typeof userID == "undefined" || userID ==  null) {
+        response.send("Not logged in")
+        return
+    }
     if(typeof request.query.reservationId == "undefined" || request.query.reservationId ==  null) 
     {
         response.send("Invalid request. Reseravtion Id not found")
         return
     }
     let reservationId = parseInt(request.query.reservationId)
-    await deleteDoc('reservation', 'reservationId', reservationId)
+    await deleteDoc('reservation', {'reservationId':reservationId,"userID":userID})
     response.send("Reservation deleted sucessfully")
     
     
