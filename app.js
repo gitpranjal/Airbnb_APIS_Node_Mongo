@@ -44,8 +44,10 @@ app.use(cors({
 
 const reviewRouter = require('./routes/reviews/reviewRoutes');
 const userRouter = require('./routes/userops/userRoutes');
+const wishlistRouter = require('./routes/wishlist/wishlistRoutes');
 app.use('/reviews', reviewRouter);
 app.use('/user', userRouter);
+app.use('/wishlist', wishlistRouter);
 
 // app.get("/", (request, response) => {
 //     response.render("tableCreation.html")
@@ -62,128 +64,6 @@ app.get("/getProperties", async (request, response) => {
     let list = await getList('properties');
     response.json(list)
 })
-
-
-
-
-app.post("/getUserWishList", async (request, response) => {
-
-    let userID = request.session.userID
-
-    if(typeof userID == "undefined" || userID ==  null) 
-    {
-        response.send("Invalid request. UserID Id not found")
-        return
-    }
-
-    let userWishList = await getFilteredList('wishlist', 'userID', userID)
-    response.json(userWishList)
-
-
-})
-
-
-app.get("/getWishlistDetails", async (request, response) => {
-
-    
-    let wishlistID = request.query.wishlistID
-
-    if(typeof wishlistID == "undefined" || wishlistID ==  null) 
-    {
-        response.send("Invalid request. wishlistID Id not found")
-        return
-    }
-
-    let wishlistDetails = await getFilteredList('wishlistitems', 'wishlistID', wishlistID)
-    response.json(wishlistDetails)
-
-
-})
-
-app.post("/addPropertyToWishlist", async (request, response) => {
-
-    let {propertyID, wishlistID} = request.body
-
-
-    if(typeof propertyID == "undefined" || propertyID ==  null) 
-    {
-        response.send("Invalid request. propertyID Id not found")
-        return
-    }
-
-    if(typeof wishlistID == "undefined" || wishlistID ==  null) 
-    {
-        response.send("Invalid request. wishlistID Id not found")
-        return
-    }
-
-    let wishlistDetails = await getFilteredList('wishlistitems', 'wishlistID', wishlistID)
-
-    for(let wishListObj of wishlistDetails)
-    {
-        if(wishListObj.propertyID == propertyID)
-        {
-            response.status(400).send({"message": "property already exists"})
-            return
-        }
-    }
-
-
-    try{
-    
-        await insertDoc('wishlistitems', request.body)
-        response.send("Reservation added successfully")
-    }
-    catch(e){
-
-      console.log(e)
-      response.send("Could't insert new reservation")
-    }
-
-})
-
-
-app.post("/addWishList", async (request, response) => {
-    
-    // let list = await getList('properties');
-    let inputObject = request.body
-    
-
-    if(typeof wishlistID == "undefined" || wishlistID ==  null) 
-    {
-        response.send("Invalid request. wishlistID Id not found")
-        return
-    }
-
-    if(typeof userID == "undefined" || userID ==  null) 
-    {
-        response.send("Invalid request. UserID Id not found")
-        return
-    }
-
-    if(typeof wishListName == "undefined" || wishListName ==  null) 
-    {
-        response.send("Invalid request. wishListName Id not found")
-        return
-    }
-
-    inputObject["createDate"] = moment().moment().format('MMMM Do YYYY, h:mm:ss a')
-
-    try{
-        let key = 'wishlistID'
-        let value = parseInt(inputObject.wishlistID)
-        await upsertDoc('wishlist', inputObject, key, value)
-        // await upsertDoc('properties', inputObject)
-        response.send("Wishlist added successfully")
-    }
-    catch(e){
-
-      console.log(e)
-      response.send("Could't insert new wishlist")
-    }
-    
-})
-
 
 
 app.post("/updateProperty", async (request, response) => {
