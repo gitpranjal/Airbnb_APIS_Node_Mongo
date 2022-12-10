@@ -84,6 +84,34 @@ const upsertDoc = async (collectionName, newDoc, key, value) => {
 
 }
 
+const upsertDocMultifilter = async (collectionName, newDoc, filter) => {
+
+    try{
+
+        
+        
+        await client.connect();
+        console.log('Connected successfully to server');
+        const db = client.db(dbName);
+        const collection = db.collection(collectionName);
+
+        await collection.updateOne(filter, 
+            {$set: newDoc}, 
+            { upsert : true } )
+        // await collection.insertOne(newDoc)
+        client.close()
+  
+ 
+
+    }
+    catch(e){
+
+        console.log("Error in getting list")
+        console.log(e)
+    }
+
+}
+
 
 const insertDoc = async (collectionName, newDoc) => {
 
@@ -295,5 +323,5 @@ const getList = async (colletionName) => {
 
 
 
-module.exports = {getList, getDoc, getDocMultivalue, getDocSorted, upsertDoc, updateDoc, deleteDoc, getFilteredList, insertDoc}
+module.exports = {getList, getDoc, getDocMultivalue, upsertDocMultifilter, getDocSorted, upsertDoc, updateDoc, deleteDoc, getFilteredList, insertDoc}
 
