@@ -45,9 +45,11 @@ app.use(cors({
 const reviewRouter = require('./routes/reviews/reviewRoutes');
 const userRouter = require('./routes/userops/userRoutes');
 const wishlistRouter = require('./routes/wishlist/wishlistRoutes');
+const reservationRouter = require('./routes/reservations/reservationRoutes');
 app.use('/reviews', reviewRouter);
 app.use('/user', userRouter);
 app.use('/wishlist', wishlistRouter);
+app.use('/reservation', reservationRouter);
 
 // app.get("/", (request, response) => {
 //     response.render("tableCreation.html")
@@ -87,27 +89,6 @@ app.post("/updateProperty", async (request, response) => {
     
 })
 
-app.post("/updateReservation", async (request, response) => {
-    
-    // let list = await getList('properties');
-    let inputObject = request.body
-
-    if(typeof inputObject.reservationId == "undefined" || inputObject.reservationId ==  null) 
-    {
-        response.send("Reservation ID not found")
-        return
-    }
-
-    let IdentifierKey = 'reservationId'
-    let IdentifierValue = inputObject['reservationId']
-    let attributesToChange = {...inputObject}
-    delete attributesToChange['reservationId']
-
-    await updateDoc('reservations', IdentifierKey, IdentifierValue, attributesToChange)
-    response.send("Reservation updated sucessfully")
-    
-})
-
 
 app.get("/getPropertyDetails", async (request, response) => {
     
@@ -118,54 +99,6 @@ app.get("/getPropertyDetails", async (request, response) => {
     
 })
 
-app.get("/getReservationDetails", async (request, response) => {
-    
-    // let list = await getList('properties');
-    let property = await getDoc('reservations', 'reservationId', request.query.reservationId)
-    response.json(property)
-    
-    
-})
-
-app.post("/addReservation", async (request, response) => {
-
-    let inputObject = request.body
-    let userID = request.session.userID
-    inputObject.userID = userID
-    if(typeof userID == "undefined" || userID ==  null) {
-        response.send("Not logged in")
-        return
-    }
-    if(typeof inputObject.reservationId == "undefined" || inputObject.reservationId ==  null) 
-    {
-        response.send("Invalid entry. Reservation Id not found")
-        return
-    }
-
-    if(typeof inputObject.propertyID == "undefined" || inputObject.propertyID ==  null) 
-    {
-        response.send("Invalid entry. property Id not found")
-        return
-    }
-    if(typeof inputObject.hostID == "undefined" || inputObject.hostID ==  null) 
-    {
-        response.send("Invalid entry. host Id not found")
-        return
-    }
-    
-    try{
-        let key = 'reservationId'
-        let value = parseInt(inputObject.reservationId)
-        await upsertDoc('reservations', inputObject, key, value)
-        response.send("Reservation added successfully")
-    }
-    catch(e){
-
-      console.log(e)
-      response.send("Could't insert new document")
-    }
-        
-})
 
 app.post("/addProperty", async (request, response) => {
 
@@ -220,26 +153,5 @@ app.get("/deleteProperty", async (request, response) => {
     
     
 })
-
-app.get("/deleteReservation", async (request, response) => {
-    
-    // let list = await getList('properties');
-    let userID = request.session.userID
-    if(typeof userID == "undefined" || userID ==  null) {
-        response.send("Not logged in")
-        return
-    }
-    if(typeof request.query.reservationId == "undefined" || request.query.reservationId ==  null) 
-    {
-        response.send("Invalid request. Reseravtion Id not found")
-        return
-    }
-    let reservationId = parseInt(request.query.reservationId)
-    await deleteDoc('reservation', {'reservationId':reservationId,"userID":userID})
-    response.send("Reservation deleted sucessfully")
-    
-    
-})
-
 
 module.exports = {app: app, port: port, hostname: hostname}

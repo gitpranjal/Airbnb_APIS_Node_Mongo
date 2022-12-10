@@ -1,6 +1,8 @@
 const express = require('express');
 const {getList, getDoc, getDocMultivalue, getDocSorted, upsertDoc, updateDoc, deleteDoc, getFilteredList, insertDoc, upsertDocMultifilter} = require("../../dbOperations")
-
+const crypto = require('crypto');
+// Generate a salt
+const salt = "c3955ace684b926f54c793c9eadc692d";
 const userRouter = express.Router();
 
 userRouter.post("/login", async (request, response) => {
@@ -14,9 +16,10 @@ userRouter.post("/login", async (request, response) => {
         return
     }
 
+    const hash = crypto.pbkdf2Sync(password, salt, 1000, 64, 'sha512').toString('hex');
     q ={}
     q['emailID'] = emailID
-    q['password'] = password
+    q['password'] = hash
 
     let user = await getDocMultivalue('users', q)
     if (user){
@@ -48,10 +51,11 @@ userRouter.post("/register", async (request, response) => {
         response.send("User already exists")
         return
     }
+    const hash = crypto.pbkdf2Sync(password, salt, 1000, 64, 'sha512').toString('hex');
 
     valuestoupdate = {
         "emailID":emailID,
-        "password":password,
+        "password":hash,
         "isHost":ishost,
         "createDate":new Date().getTime()/1000,
         "isVerified":true
