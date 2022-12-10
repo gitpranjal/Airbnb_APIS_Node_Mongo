@@ -42,6 +42,9 @@ app.use(cors({
     origin: '*'
 }));
 
+const reviewRouter = require('./reviews/reviewRoutes');
+app.use('/reviews', reviewRouter);
+
 // app.get("/", (request, response) => {
 //     response.render("tableCreation.html")
 // })
@@ -463,49 +466,6 @@ app.post("/logout", async (request, response) => {
         }
       });
 })
-
-app.post("/addreview", async (request, response) => {
-    let userID = request.session.userID
-    if(typeof userID == "undefined" || userID ==  null) 
-    {
-        response.send("Not logged in")
-        return
-    }
-    let propertyID = request.body.propertyID
-    let rating = request.body.rating
-    let review = request.body.review
-    if(typeof propertyID == "undefined" || propertyID ==  null || typeof rating == "undefined" || rating ==  null || review ==  "undefined" || review ==  null) {
-        response.send("Enter review, rating and property")
-        return
-    }
-    valuestoupdate = {
-        "userID":userID,
-        "propertyID":propertyID,
-        "rating":rating,
-        "review":review
-    }
-    let result = await getDocSorted('feedbacks',{},{'reviewID':-1},1)
-    result.forEach(review => {
-         lastreview = review.reviewID
-    });
-    reviewID = lastreview + 1
-    valuestoupdate["reviewID"]=reviewID
-    await upsertDocMultifilter('feedbacks', valuestoupdate, {"userID":userID,"propertyID":propertyID})
-    response.send("Reviewed successfully")
-})
-
-app.get("/getReviews", async (request, response) => {
-    let propertyID = parseInt(request.query.propertyID)
-    let list = await getFilteredList('feedbacks',"propertyID",propertyID);
-    response.json(list)
-})
-
-
-
-
-
-
-
 
 
 module.exports = {app: app, port: port, hostname: hostname}
