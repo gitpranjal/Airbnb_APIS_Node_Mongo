@@ -1,6 +1,8 @@
-const {getList, getDoc, upsertDoc, updateDoc, deleteDoc, getFilteredList, insertDoc} = require("./dbOperations")
+const {getList, getDoc, getDocMultivalue, getDocSorted, upsertDoc, updateDoc, deleteDoc, getFilteredList, insertDoc} = require("./dbOperations")
 
 const express = require("express")
+const cookieParser = require("cookie-parser");
+const sessions = require('express-session');
 const multer = require('multer')
 const path = require('path')
 const bodyParser = require("body-parser")
@@ -23,6 +25,14 @@ app.use(bodyParser.urlencoded({ extended: true }))
 app.set('views', __dirname + '/views');
 app.engine('html', require('ejs').renderFile)
 app.set('view engine', 'ejs')
+const oneDay = 1000 * 60 * 60 * 24;
+app.use(sessions({
+    secret: "ashd23874@*&^#iadgv",
+    saveUninitialized:true,
+    cookie: { maxAge: oneDay },
+    resave: false 
+}));
+app.use(cookieParser());
 
 const upload = multer({ dest: './uploads/' })
 
@@ -53,7 +63,7 @@ app.get("/getProperties", async (request, response) => {
 
 app.post("/getUserWishList", async (request, response) => {
 
-    let userID = request.body.userID
+    let userID = request.session.userID
 
     if(typeof userID == "undefined" || userID ==  null) 
     {
@@ -333,6 +343,116 @@ app.get("/deleteReservation", async (request, response) => {
     response.send("Reservation deleted sucessfully")
     
     
+})
+
+app.post("/login", async (request, response) => {
+    
+    let emailID = request.body.emailID
+    let password = request.body.pass
+
+    if(typeof emailID == "undefined" || emailID ==  null || password ==  "undefined" || password ==  null) 
+    {
+        response.send("Enter emailID and password")
+        return
+    }
+
+    let IdentifierKey = ['emailID','password']
+    let IdentifierValue = [emailID, password]
+    q ={}
+    q['emailID'] = emailID
+    q['password'] = password
+
+    let user = await getDocMultivalue('users', q)
+    if (user){
+        request.session.userID = user.userId
+        if(user.isHost == true){
+            request.session.host = true
+        }
+        response.send(request.session)
+    }else{
+        response.send("Incorrect Id and Pass")
+    }
+    
+})
+
+app.post("/register", async (request, response) => {
+    
+    let emailID = request.body.emailID
+    let password = request.body.pass
+    let name = request.body.name
+    let ishost = false
+
+    if(typeof name == "undefined" || name ==  null || typeof emailID == "undefined" || emailID ==  null || password ==  "undefined" || password ==  null) {
+        response.send("Enter emailID, password and name")
+        return
+    }
+
+    let existingUser = await getDocMultivalue('users',{'emailID':emailID})
+    if(existingUser){
+        response.send("User already exists")
+        return
+    }
+
+    valuestoupdate = {
+        "emailID":emailID,
+        "password":password,
+        "isHost":ishost,
+        "createDate":new Date().getTime()/1000,
+        "isVerified":true
+    }
+
+    // get last userid to update - 
+    let result = await getDocSorted('users',{},{'userId':-1},1)
+    result.forEach(user => {
+         lastuser = user.userId
+    });
+    
+    let newUserId = lastuser + 1
+
+    valuestoupdate["userId"] = newUserId
+
+    await upsertDoc('users', valuestoupdate, "emailID", emailID)
+    request.session.userID = newUserId
+    response.send(request.session)
+})
+
+app.post("/becomehost", async (request, response) => {
+    let userID = request.session.userID
+    let dob = request.body.dob
+    let phoneNumber = request.body.phoneNumber
+    let ssn = request.body.ssn
+    let address = request.body.address
+
+    if(typeof userID == "undefined" || userID ==  null) 
+    {
+        response.send("Not logged in")
+        return
+    }
+    if(typeof ssn == "undefined" || ssn ==  null) 
+    {
+        response.send("ssn is mandatory")
+        return
+    }
+    update = {"DOB":dob, "phoneNumber":phoneNumber, "isHost":true}
+    await upsertDoc('users', update, "userId", userID)
+    // get last userid to update - 
+    let result = await getDocSorted('hosts',{},{'hostID':-1},1)
+    result.forEach(host => {
+         lasthost = host.hostID
+    });
+    let newhostId = lasthost + 1
+    await upsertDoc('hosts', {"ssn":ssn, "hostID":newhostId, "address":address}, "userID", userID)
+    response.send("Congrats. kamale paisa")
+})
+
+app.post("/logout", async (request, response) => {
+    request.session.destroy(function(err) {
+        if(err) {
+          console.log(err);
+        } else {
+            response.send("Logout success")
+        }
+      });
 })
 
 

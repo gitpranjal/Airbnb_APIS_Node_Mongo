@@ -209,6 +209,58 @@ const getDoc = async (collectionName, key, value) =>{
 
 }
 
+const getDocSorted = async (collectionName, query, sortCriteria, limit) =>{
+
+    try{
+        await client.connect();
+        console.log('Connected successfully to server');
+        const db = client.db(dbName);
+        const collection = db.collection(collectionName);
+        const findResult = await collection.find(query).sort(sortCriteria).limit(limit).toArray();
+        client.close()
+  
+    // the following code examples can be pasted here...
+        console.log("#######")
+        console.log(query)
+        console.log(findResult)
+        return findResult;
+
+    }
+    catch(e){
+
+        console.log("Error in getting list")
+        console.log(e)
+    }
+
+}
+
+const getDocMultivalue = async (collectionName, query) =>{
+
+    try{
+
+        
+        await client.connect();
+        console.log('Connected successfully to server');
+        const db = client.db(dbName);
+        const collection = db.collection(collectionName);
+        const findResult = await collection.findOne(query)
+        client.close()
+  
+    // the following code examples can be pasted here...
+        console.log("#######")
+        console.log(query)
+        console.log(findResult)
+        return findResult;
+
+    }
+    catch(e){
+
+        console.log("Error in getting list")
+        console.log(e)
+    }
+
+}
+
 const getList = async (colletionName) => {
 
     try{
@@ -243,5 +295,5 @@ const getList = async (colletionName) => {
 
 
 
-module.exports = {getList, getDoc, upsertDoc, updateDoc, deleteDoc, getFilteredList, insertDoc}
+module.exports = {getList, getDoc, getDocMultivalue, getDocSorted, upsertDoc, updateDoc, deleteDoc, getFilteredList, insertDoc}
 
