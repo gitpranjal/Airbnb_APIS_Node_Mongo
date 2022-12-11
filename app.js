@@ -80,7 +80,23 @@ app.get("/getWishlistDetails", async (request, response) => {
     }
 
     let wishlistDetails = await getFilteredList('wishlistitems', 'wishlistID', wishlistID)
-    response.json(wishlistDetails)
+
+    let propertyList = []
+
+    wishlistDetails.forEach(async wishListObject => {
+
+        let propertyDetailObject = await getDoc('properties', 'propertyID', wishListObject.propertyID)
+        propertyList.push(propertyDetailObject)
+
+        console.log(propertyDetailObject)
+
+    })
+
+    
+
+
+
+    response.json(propertyList)
 
 
 })
@@ -170,7 +186,6 @@ app.post("/addWishList", async (request, response) => {
 })
 
 
-
 app.post("/updateProperty", async (request, response) => {
     
     // let list = await getList('properties');
@@ -219,6 +234,16 @@ app.get("/getPropertyDetails", async (request, response) => {
     // let list = await getList('properties');
     let property = await getDoc('properties', 'propertyID', request.query.propertyID)
     response.json(property)
+    
+    
+})
+
+app.post("/getReservationList", async (request, response) => {
+    
+    // let list = await getList('properties');
+    let {userID} = request.body
+    let reservations = await getFilteredList('reservations', 'userID', userID)
+    response.json(reservations)
     
     
 })

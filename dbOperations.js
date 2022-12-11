@@ -178,34 +178,48 @@ const getFilteredList = async (collectionName, key, value) => {
 
 const getDoc = async (collectionName, key, value) =>{
 
-    try{
+
+
+    return new Promise(async (resolve, reject) => {
+
+
+        try{
 
         
-        value = parseInt(value)
-        await client.connect();
-        console.log('Connected successfully to server');
-        const db = client.db(dbName);
-        const collection = db.collection(collectionName);
+            value = parseInt(value)
+            await client.connect();
+            console.log('Connected successfully to server');
+            const db = client.db(dbName);
+            const collection = db.collection(collectionName);
+    
+            let query = {}
+            query[key] = value
+            
+            collection.findOne(query, (err, item) => {
+    
+                console.log("########")
+                console.log(query)
+                
+                
+                client.close()
 
-        let query = {}
-        query[key] = value
-        const findResult = await collection.findOne(query)
-        client.close()
-  
-    // the following code examples can be pasted here...
-        console.log("#######")
-        console.log(typeof key)
-        console.log(typeof value)
-        console.log(query)
-        console.log(findResult)
-        return findResult;
+                resolve(item)
+            })
+            
+      
+        // the following code examples can be pasted here...
+           
+    
+        }
+        catch(e){
+    
+            console.log("Error in getting list")
+            reject(e)
+            console.log(e)
+        }
 
-    }
-    catch(e){
-
-        console.log("Error in getting list")
-        console.log(e)
-    }
+    })
+    
 
 }
 
