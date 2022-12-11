@@ -10,7 +10,7 @@ reviewRouter.get("/getReviews", async (request, response) => {
 })
 
 reviewRouter.post("/addreview", async (request, response) => {
-    let userID = request.session.userID
+    let userID = request.body.userID
     if(typeof userID == "undefined" || userID ==  null) {
         response.send("Not logged in")
         return
@@ -39,7 +39,7 @@ reviewRouter.post("/addreview", async (request, response) => {
 })
 
 reviewRouter.delete("/", async (request, response) => {
-    let userID = request.session.userID
+    let userID = request.query.userID
     if(typeof userID == "undefined" || userID ==  null) {
         response.send("Not logged in")
         return

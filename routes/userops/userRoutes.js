@@ -22,14 +22,16 @@ userRouter.post("/login", async (request, response) => {
     q['password'] = hash
 
     let user = await getDocMultivalue('users', q)
-    if (user){
+    result = {}
+    result['userID']=user.userId
+    if(user){
         if(user.isHost == true){
-            host = await getDocMultivalue('hosts',{'userID':userID})
+            host = await getDocMultivalue('hosts',{'userID':user.userId})
             if(host){
-                request.session.host = host.hostID
+                result['host']=host.hostID
             }
         }
-        response.status(200).send(user.userId)
+        response.status(200).send(result)
     }else{
         response.status(401).send("Incorrect Id and Pass")
     }

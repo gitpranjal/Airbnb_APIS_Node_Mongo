@@ -6,7 +6,7 @@ const wishlistRouter = express.Router();
 
 wishlistRouter.get("/user", async (request, response) => {
 
-    let userID = request.body.userID
+    let userID = request.query.userID
 
     if(typeof userID == "undefined" || userID ==  null) {
         response.send("Not logged in")
@@ -95,7 +95,7 @@ wishlistRouter.post("/item", async (request, response) => {
 })
 
 wishlistRouter.delete("/item", async (request, response) => {
-    let userID = request.body.userID
+    let userID = request.query.userID
 
     if(typeof userID == "undefined" || userID ==  null) {
         response.send("Not logged in")

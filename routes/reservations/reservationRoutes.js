@@ -4,7 +4,7 @@ const {getList, getDoc, getDocMultivalue, getDocSorted, upsertDoc, updateDoc, de
 const reservationRouter = express.Router();
 
 reservationRouter.get("/", async (request, response) => {
-    let userID = request.session.userID
+    let userID = request.query.userID
     if(typeof userID == "undefined" || userID ==  null) {
         response.send("Not logged in")
         return
@@ -14,7 +14,7 @@ reservationRouter.get("/", async (request, response) => {
 })
 
 reservationRouter.get("/detail", async (request, response) => {
-    let userID = request.session.userID
+    let userID = request.query.userID
     let reservationId = request.query.reservationId
     if(typeof userID == "undefined" || userID ==  null) {
         response.send("Not logged in")
@@ -29,7 +29,7 @@ reservationRouter.get("/detail", async (request, response) => {
 })
 
 reservationRouter.post("/update", async (request, response) => {
-    let userID = request.session.userID
+    let userID = request.body.userID
     if(typeof userID == "undefined" || userID ==  null) {
         response.send("Not logged in")
         return
@@ -55,7 +55,7 @@ reservationRouter.post("/update", async (request, response) => {
 reservationRouter.post("/create", async (request, response) => {
 
     let inputObject = request.body
-    let userID = request.session.userID
+    let userID = request.body.userID
     inputObject.userID = userID
     if(typeof userID == "undefined" || userID ==  null) {
         response.send("Not logged in")
@@ -95,7 +95,7 @@ reservationRouter.post("/create", async (request, response) => {
 })
 
 reservationRouter.delete("/cancel", async (request, response) => {
-    let userID = request.session.userID
+    let userID = request.query.userID
     if(typeof userID == "undefined" || userID ==  null) {
         response.send("Not logged in")
         return

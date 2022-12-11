@@ -9,7 +9,7 @@ propertyRouter.get("/all", async (request, response) => {
 
 
 propertyRouter.post("/update", async (request, response) => {
-    let host = request.session.host
+    let host = request.body.host
     if(host ==  "undefined" || host ==  null) {
         response.send("Not logged in or not host")
         return
@@ -39,7 +39,7 @@ propertyRouter.get("/details", async (request, response) => {
 propertyRouter.post("/create", async (request, response) => {
 
     let inputObject = request.body
-    let host = request.session.host
+    let host = request.body.host
     if(host ==  "undefined" || host ==  null) {
         response.send("Not logged in or not host")
         return
@@ -62,7 +62,7 @@ propertyRouter.post("/create", async (request, response) => {
 
 propertyRouter.delete("/", async (request, response) => {
     
-    let host = request.session.host
+    let host = request.query.host
     if(host ==  "undefined" || host ==  null) {
         response.send("Not logged in or not host")
         return
