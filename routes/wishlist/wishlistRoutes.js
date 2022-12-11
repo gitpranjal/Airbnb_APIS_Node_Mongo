@@ -83,7 +83,7 @@ wishlistRouter.post("/item", async (request, response) => {
 
     try{
     
-        await insertDoc('wishlistitems', request.body)
+        await insertDoc('wishlistitems', {"propertyID":propertyID,"wishlistID":wishlistID})
         response.send("Property added to wishlist succesfully")
     }
     catch(e){
