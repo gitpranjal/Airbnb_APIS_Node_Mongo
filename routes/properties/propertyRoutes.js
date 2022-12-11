@@ -24,7 +24,7 @@ propertyRouter.post("/update", async (request, response) => {
     let attributesToChange = {...inputObject}
     delete attributesToChange['propertyID']
 
-    await updateDoc('properties',attributesToChange,{'propertyID':parseInt(inputObject.propertyID),'hostID':host})
+    await updateDoc('properties',attributesToChange,{'propertyID':parseInt(inputObject.propertyID),'hostID':parseInt(host)})
     response.send("Property updated sucessfully")
     
 })
@@ -50,7 +50,7 @@ propertyRouter.post("/create", async (request, response) => {
          lastProperty = property.propertyID+1
     });
     try{
-        await upsertDocMultifilter('properties', inputObject,{'hostID':host,'propertyID':lastProperty})
+        await upsertDocMultifilter('properties', inputObject,{'hostID':parseInt(host),'propertyID':lastProperty})
         response.send("Property added added successfully")
     }
     catch(e){
@@ -72,7 +72,7 @@ propertyRouter.delete("/", async (request, response) => {
         return
     }
     let propertyID = parseInt(request.query.propertyID)
-    await updateDoc('properties', {'propertyID':propertyID,'status':0},{'propertyID':propertyID, 'hostID':host})
+    await updateDoc('properties', {'propertyID':propertyID,'status':0},{'propertyID':propertyID, 'hostID':parseInt(host)})
     response.send("Property deleted sucessfully")
 })
 

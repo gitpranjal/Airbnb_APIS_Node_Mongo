@@ -13,7 +13,7 @@ wishlistRouter.get("/user", async (request, response) => {
         return
     }
 
-    let userWishList = await getFilteredList('wishlist', {'userID':userID})
+    let userWishList = await getFilteredList('wishlist', {'userID':parseInt(userID)})
     response.json(userWishList)
 })
 
@@ -139,7 +139,7 @@ wishlistRouter.post("/create", async (request, response) => {
     wishlistID = lastwish+1
 
     valuestoupdate = {
-        "userID":userID,
+        "userID":parseInt(userID),
         "wishlistID":wishlistID,
         "wishListName":wishListName,
         "createDate":new Date().getTime()/1000
