@@ -25,7 +25,10 @@ userRouter.post("/login", async (request, response) => {
     if (user){
         request.session.userID = user.userId
         if(user.isHost == true){
-            request.session.host = true
+            host = await getDocMultivalue('hosts',{'userID':userID})
+            if(host){
+                request.session.host = host.hostID
+            }
         }
         response.send(request.session)
     }else{
@@ -95,7 +98,7 @@ userRouter.post("/becomehost", async (request, response) => {
     }
     update = {"DOB":dob, "phoneNumber":phoneNumber, "isHost":true}
     await upsertDoc('users', update, "userId", userID)
-    // get last userid to update - 
+    // get last hostid to update - 
     let result = await getDocSorted('hosts',{},{'hostID':-1},1)
     result.forEach(host => {
          lasthost = host.hostID

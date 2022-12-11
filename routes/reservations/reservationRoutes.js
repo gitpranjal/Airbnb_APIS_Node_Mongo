@@ -9,7 +9,6 @@ reservationRouter.get("/", async (request, response) => {
         response.send("Not logged in")
         return
     }
-    // let list = await getList('properties');
     let property = await getFilteredList('reservations', 'userID', userID)
     response.json(property)
 })
@@ -25,14 +24,11 @@ reservationRouter.get("/detail", async (request, response) => {
         response.send("Reservation Id not found")
         return
     }
-    // let list = await getList('properties');
     let property = await getDocMultivalue('reservations', {'reservationId':parseInt(request.query.reservationId),"userID":userID})
     response.json(property)
 })
 
 reservationRouter.post("/update", async (request, response) => {
-    
-    // let list = await getList('properties');
     let userID = request.session.userID
     if(typeof userID == "undefined" || userID ==  null) {
         response.send("Not logged in")
@@ -99,8 +95,6 @@ reservationRouter.post("/create", async (request, response) => {
 })
 
 reservationRouter.delete("/cancel", async (request, response) => {
-    
-    // let list = await getList('properties');
     let userID = request.session.userID
     if(typeof userID == "undefined" || userID ==  null) {
         response.send("Not logged in")

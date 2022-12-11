@@ -21,7 +21,7 @@ var dbName = 'apnabnb'
 
 
 
-const updateDoc = async(collectionName, IdentifierKey, IdentifierValue, attributesToChange) =>{
+const updateDoc = async(collectionName, attributesToChange, filter) =>{
 
     try{
 
@@ -32,15 +32,8 @@ const updateDoc = async(collectionName, IdentifierKey, IdentifierValue, attribut
         const db = client.db(dbName);
         const collection = db.collection(collectionName);
 
-       
       
-      
-        let identifier = {}
-        identifier[IdentifierKey] = IdentifierValue
-
-    
-        
-        await collection.updateOne(identifier,
+        await collection.updateOne(filter,
         {$set:{...attributesToChange}},{multi:true})
   
 

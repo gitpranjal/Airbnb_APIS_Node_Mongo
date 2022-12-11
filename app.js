@@ -1,5 +1,3 @@
-const {getList, getDoc, getDocMultivalue, getDocSorted, upsertDoc, updateDoc, deleteDoc, getFilteredList, insertDoc, upsertDocMultifilter} = require("./dbOperations")
-
 const express = require("express")
 const cookieParser = require("cookie-parser");
 const sessions = require('express-session');
@@ -56,11 +54,5 @@ app.use('/property', propertyRouter);
 // app.get("/", (request, response) => {
 //     response.render("tableCreation.html")
 // })
-
-app.get("/", async (request, response) => {
-    
-    let list = await getList('properties');
-    response.json(list)
-})
 
 module.exports = {app: app, port: port, hostname: hostname}

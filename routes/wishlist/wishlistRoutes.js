@@ -1,6 +1,6 @@
 const { request, response } = require('express');
 const express = require('express');
-const {getList, getDoc, getDocMultivalue, getDocSorted, upsertDoc, updateDoc, deleteDoc, getFilteredList, insertDoc, upsertDocMultifilter} = require("../../dbOperations")
+const {getDocMultivalue, getDocSorted, upsertDoc, deleteDoc, getFilteredList, insertDoc} = require("../../dbOperations")
 
 const wishlistRouter = express.Router();
 
@@ -16,7 +16,6 @@ wishlistRouter.get("/user", async (request, response) => {
     let userWishList = await getFilteredList('wishlist', 'userID', userID)
     response.json(userWishList)
 })
-
 
 wishlistRouter.get("/item", async (request, response) => {
 
@@ -111,7 +110,6 @@ wishlistRouter.delete("/item", async (request, response) => {
 
 wishlistRouter.post("/create", async (request, response) => {
     
-    // let list = await getList('properties');
     let userID = request.session.userID
 
     if(typeof userID == "undefined" || userID ==  null) {
