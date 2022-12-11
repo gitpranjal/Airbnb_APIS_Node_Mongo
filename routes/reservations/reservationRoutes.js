@@ -9,7 +9,7 @@ reservationRouter.get("/", async (request, response) => {
         response.send("Not logged in")
         return
     }
-    let property = await getFilteredList('reservations', {'userID':userID})
+    let property = await getFilteredList('reservations', {'userID':parseInt(userID)})
     response.json(property)
 })
 
@@ -46,7 +46,7 @@ reservationRouter.post("/update", async (request, response) => {
     let attributesToChange = {...inputObject}
     delete attributesToChange['reservationId']
 
-    await upsertDocMultifilter('reservations', attributesToChange, {'reservationId':IdentifierValue,"userID":userID})
+    await upsertDocMultifilter('reservations', attributesToChange, {'reservationId':IdentifierValue,"userID":parseInt(userID)})
     response.send("Reservation updated sucessfully")
     
 })
