@@ -37,7 +37,8 @@ const upload = multer({ dest: './uploads/' })
 let loggedInUserObject = {}
 
 app.use(cors({
-    origin: '*'
+    origin: '*',
+    credentials: true
 }));
 
 const reviewRouter = require('./routes/reviews/reviewRoutes');
