@@ -30,9 +30,10 @@ userRouter.post("/login", async (request, response) => {
                 request.session.host = host.hostID
             }
         }
-        response.send(request.session)
+        response.cookie(request.session)
+        response.status(200).send(request.session)
     }else{
-        response.send("Incorrect Id and Pass")
+        response.status(401).send("Incorrect Id and Pass")
     }
     
 })
