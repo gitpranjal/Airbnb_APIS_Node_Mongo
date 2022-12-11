@@ -23,14 +23,13 @@ userRouter.post("/login", async (request, response) => {
 
     let user = await getDocMultivalue('users', q)
     if (user){
-        request.session.cookie.userID = user.userId 
         if(user.isHost == true){
             host = await getDocMultivalue('hosts',{'userID':userID})
             if(host){
                 request.session.host = host.hostID
             }
         }
-        response.status(200).send(request.session)
+        response.status(200).send(user.userId)
     }else{
         response.status(401).send("Incorrect Id and Pass")
     }
@@ -76,11 +75,11 @@ userRouter.post("/register", async (request, response) => {
 
     await upsertDoc('users', valuestoupdate, "emailID", emailID)
     request.session.userID = newUserId
-    response.send(request.session)
+    response.send(newUserId)
 })
 
 userRouter.post("/becomehost", async (request, response) => {
-    let userID = request.session.userID
+    let userID = request.body.userID
     let dob = request.body.dob
     let phoneNumber = request.body.phoneNumber
     let ssn = request.body.ssn
