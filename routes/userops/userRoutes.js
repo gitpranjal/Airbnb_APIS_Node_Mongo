@@ -23,7 +23,7 @@ userRouter.post("/login", async (request, response) => {
 
     let user = await getDocMultivalue('users', q)
     if (user){
-        request.session.userID = user.userId
+        request.session.userID = user.userId 
         if(user.isHost == true){
             host = await getDocMultivalue('hosts',{'userID':userID})
             if(host){

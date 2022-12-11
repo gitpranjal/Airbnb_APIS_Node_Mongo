@@ -9,7 +9,7 @@ reservationRouter.get("/", async (request, response) => {
         response.send("Not logged in")
         return
     }
-    let property = await getFilteredList('reservations', 'userID', userID)
+    let property = await getFilteredList('reservations', {'userID':userID})
     response.json(property)
 })
 

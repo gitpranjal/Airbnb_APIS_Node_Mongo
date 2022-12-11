@@ -5,7 +5,7 @@ const reviewRouter = express.Router();
 
 reviewRouter.get("/getReviews", async (request, response) => {
     let propertyID = parseInt(request.query.propertyID)
-    let list = await getFilteredList('feedbacks',"propertyID",propertyID);
+    let list = await getFilteredList('feedbacks',{"propertyID":propertyID});
     response.json(list)
 })
 

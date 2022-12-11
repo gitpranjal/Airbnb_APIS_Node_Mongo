@@ -161,27 +161,22 @@ const deleteDoc = async (collectionName, query) => {
 
 }
 
-const getFilteredList = async (collectionName, key, value) => {
+const getFilteredList = async (collectionName, filter) => {
 
     try{
 
         
-        value = parseInt(value)
         await client.connect();
         console.log('Connected successfully to server');
         const db = client.db(dbName);
         const collection = db.collection(collectionName);
 
-        let query = {}
-        query[key] = value
-        const findResult = await collection.find(query).toArray()
+        const findResult = await collection.find(filter).toArray()
         client.close()
   
     // the following code examples can be pasted here...
         console.log("#######")
-        console.log(typeof key)
-        console.log(typeof value)
-        console.log(query)
+        console.log(filter)
         console.log(findResult)
         return findResult;
 

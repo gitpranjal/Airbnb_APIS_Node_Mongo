@@ -13,7 +13,7 @@ wishlistRouter.get("/user", async (request, response) => {
         return
     }
 
-    let userWishList = await getFilteredList('wishlist', 'userID', userID)
+    let userWishList = await getFilteredList('wishlist', {'userID':userID})
     response.json(userWishList)
 })
 
@@ -33,8 +33,17 @@ wishlistRouter.get("/item", async (request, response) => {
         return
     }
 
-    let wishlistDetails = await getDocMultivalue('wishlistitems', {'wishlistID':parseInt(wishlistID),"userID":userID})
-    response.json(wishlistDetails)
+    let wishlistDetails = await getFilteredList('wishlistitems', {'wishlistID':parseInt(wishlistID)})
+    let properties = []
+    wishlistDetails.forEach(wishlistDetail => {
+        properties.push(wishlistDetail.propertyID)
+    });
+    if (properties.length > 0){
+        let propertyDetails = await getFilteredList('properties', {'propertyID':{"$in":properties}})
+        response.json(propertyDetails)
+    }else{
+        response.json("No items in wishlist")
+    }
 
 })
 
@@ -60,7 +69,7 @@ wishlistRouter.post("/item", async (request, response) => {
         return
     }
 
-    let wishlistDetails = await getFilteredList('wishlistitems', 'wishlistID', wishlistID)
+    let wishlistDetails = await getFilteredList('wishlistitems', {'wishlistID':wishlistID})
 
     for(let wishListObj of wishlistDetails)
     {
