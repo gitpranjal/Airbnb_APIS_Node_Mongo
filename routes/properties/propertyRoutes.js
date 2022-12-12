@@ -3,7 +3,7 @@ const {getList, getDoc, getDocMultivalue, getDocSorted, upsertDoc, updateDoc, de
 const propertyRouter = express.Router();
 
 propertyRouter.get("/all", async (request, response) => {
-    let list = await getList('properties');
+    let list = await getFilteredList('properties',{'status':1});
     response.json(list)
 })
 
