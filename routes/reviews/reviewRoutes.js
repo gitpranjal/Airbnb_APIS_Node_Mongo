@@ -10,12 +10,12 @@ reviewRouter.get("/getReviews", async (request, response) => {
 })
 
 reviewRouter.post("/addreview", async (request, response) => {
-    let userID = request.body.userID
+    let userID = parseInt(request.body.userID)
     if(typeof userID == "undefined" || userID ==  null) {
         response.send("Not logged in")
         return
     }
-    let propertyID = request.body.propertyID
+    let propertyID = parseInt(request.body.propertyID)
     let rating = request.body.rating
     let review = request.body.review
     if(typeof propertyID == "undefined" || propertyID ==  null || typeof rating == "undefined" || rating ==  null || review ==  "undefined" || review ==  null) {
@@ -39,7 +39,7 @@ reviewRouter.post("/addreview", async (request, response) => {
 })
 
 reviewRouter.delete("/", async (request, response) => {
-    let userID = request.query.userID
+    let userID = parseInt(request.query.userID)
     if(typeof userID == "undefined" || userID ==  null) {
         response.send("Not logged in")
         return
