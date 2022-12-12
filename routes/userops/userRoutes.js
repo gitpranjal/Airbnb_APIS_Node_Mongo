@@ -24,6 +24,7 @@ userRouter.post("/login", async (request, response) => {
     let user = await getDocMultivalue('users', q)
     result = {}
     result['userID']=user.userId
+    result['name']=user.name
     if(user){
         if(user.isHost == true){
             host = await getDocMultivalue('hosts',{'userID':user.userId})
@@ -62,7 +63,8 @@ userRouter.post("/register", async (request, response) => {
         "password":hash,
         "isHost":ishost,
         "createDate":new Date().getTime()/1000,
-        "isVerified":true
+        "isVerified":true,
+        "name":name
     }
 
     // get last userid to update - 
@@ -77,7 +79,7 @@ userRouter.post("/register", async (request, response) => {
 
     await upsertDoc('users', valuestoupdate, "emailID", emailID)
     request.session.userID = newUserId
-    response.send(newUserId)
+    response.send({'userID':newUserId,'name':name})
 })
 
 userRouter.post("/becomehost", async (request, response) => {
