@@ -57,6 +57,7 @@ reservationRouter.post("/create", async (request, response) => {
     let inputObject = request.body
     let userID = request.body.userID
     inputObject.userID = parseInt(userID)
+    inputObject.propertyID = parseInt(inputObject.propertyID)
     if(typeof userID == "undefined" || userID ==  null) {
         response.send("Not logged in")
         return
