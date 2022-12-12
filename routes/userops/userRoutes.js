@@ -108,7 +108,7 @@ userRouter.post("/becomehost", async (request, response) => {
     });
     let newhostId = lasthost + 1
     await upsertDoc('hosts', {"ssn":ssn, "hostID":newhostId, "address":address}, "userID", userID)
-    response.send("Congrats. kamale paisa")
+    response.send({"host":newhostId})
 })
 
 userRouter.post("/logout", async (request, response) => {
