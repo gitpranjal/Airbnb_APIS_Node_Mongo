@@ -106,7 +106,7 @@ reservationRouter.delete("/cancel", async (request, response) => {
         return
     }
     let reservationId = parseInt(request.query.reservationId)
-    await deleteDoc('reservations', {'reservationId':reservationId,"userID":userID})
+    await deleteDoc('reservations', {'reservationId':reservationId,"userID":parseInt(userID)})
     response.send("Reservation deleted sucessfully")
 })
 
