@@ -7,6 +7,11 @@ propertyRouter.get("/all", async (request, response) => {
     response.json(list)
 })
 
+propertyRouter.get("/host", async (request, response) => {
+    let host = request.query.host
+    let list = await getFilteredList('properties',{'hostID':parseInt(host)});
+    response.json(list)
+})
 
 propertyRouter.post("/update", async (request, response) => {
     let host = request.body.host
