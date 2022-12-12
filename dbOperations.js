@@ -197,8 +197,7 @@ const getLookupList = async (collectionName1,collectionName2,localkey,foreignkey
         await client.connect();
         console.log('Connected successfully to server');
         const db = client.db(dbName);
-        const collection1 = db.collection(collectionName1);
-        const collection2 = db.collection(collectionName2);
+        const collection = db.collection(collectionName1);
         const agg = [
             {
               '$lookup': {
@@ -211,7 +210,7 @@ const getLookupList = async (collectionName1,collectionName2,localkey,foreignkey
               '$match': filter
             }
           ];
-        const findResult = await collection1.aggregate(agg).toArray()
+        const findResult = await collection.aggregate(agg).toArray()
         client.close()
   
     // the following code examples can be pasted here...
