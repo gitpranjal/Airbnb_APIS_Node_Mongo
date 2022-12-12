@@ -83,7 +83,7 @@ userRouter.post("/register", async (request, response) => {
 })
 
 userRouter.post("/becomehost", async (request, response) => {
-    let userID = request.body.userID
+    let userID = parseInt(request.body.userID)
     let dob = request.body.dob
     let phoneNumber = request.body.phoneNumber
     let ssn = request.body.ssn
