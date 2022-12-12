@@ -1,11 +1,11 @@
 const express = require('express');
-const {getList, getDoc, getDocMultivalue, getDocSorted, upsertDoc, updateDoc, deleteDoc, getFilteredList, insertDoc, upsertDocMultifilter} = require("../../dbOperations")
+const {getLookupList, getDoc, getDocMultivalue, getDocSorted, upsertDoc, updateDoc, deleteDoc, getFilteredList, insertDoc, upsertDocMultifilter} = require("../../dbOperations")
 
 const reviewRouter = express.Router();
 
 reviewRouter.get("/getReviews", async (request, response) => {
     let propertyID = parseInt(request.query.propertyID)
-    let list = await getFilteredList('feedbacks',{"propertyID":propertyID});
+    let list = await getLookupList('feedbacks','users',"userID","userId",{'propertyID': propertyID});
     response.json(list)
 })
 

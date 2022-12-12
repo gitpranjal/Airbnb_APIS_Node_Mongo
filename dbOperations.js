@@ -189,6 +189,46 @@ const getFilteredList = async (collectionName, filter) => {
 
 }
 
+const getLookupList = async (collectionName1,collectionName2,localkey,foreignkey,filter) => {
+
+    try{
+
+        
+        await client.connect();
+        console.log('Connected successfully to server');
+        const db = client.db(dbName);
+        const collection1 = db.collection(collectionName1);
+        const collection2 = db.collection(collectionName2);
+        const agg = [
+            {
+              '$lookup': {
+                'from': collectionName2, 
+                'localField': localkey, 
+                'foreignField': foreignkey, 
+                'as': 'result'
+              }
+            }, {
+              '$match': filter
+            }
+          ];
+        const findResult = await collection1.aggregate(agg).toArray()
+        client.close()
+  
+    // the following code examples can be pasted here...
+        console.log("#######")
+        console.log(filter)
+        console.log(findResult)
+        return findResult;
+
+    }
+    catch(e){
+
+        console.log("Error in getting list")
+        console.log(e)
+    }
+
+}
+
 const getDoc = async (collectionName, key, value) =>{
 
     try{
@@ -308,5 +348,5 @@ const getList = async (colletionName) => {
 
 
 
-module.exports = {getList, getDoc, getDocMultivalue, upsertDocMultifilter, getDocSorted, upsertDoc, updateDoc, deleteDoc, getFilteredList, insertDoc}
+module.exports = {getList, getDoc, getDocMultivalue, getLookupList,upsertDocMultifilter, getDocSorted, upsertDoc, updateDoc, deleteDoc, getFilteredList, insertDoc}
 
